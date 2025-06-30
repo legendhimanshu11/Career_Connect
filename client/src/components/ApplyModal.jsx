@@ -14,15 +14,20 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
     skills: "",
   });
   const [resumePreview, setResumePreview] = useState(null);
+  const [skillInput, setSkillInput] = useState("");
+  const [skillsList, setSkillsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load saved draft if exists
   useEffect(() => {
     const draft = JSON.parse(localStorage.getItem("jobDraft"));
-    if (draft) setForm(draft);
+    if (draft) {
+      setForm(draft);
+      if (draft.skills) {
+        setSkillsList(draft.skills.split(",").map((s) => s.trim()));
+      }
+    }
   }, []);
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
     return () => (document.body.style.overflow = "auto");
@@ -37,6 +42,28 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleAddSkill = () => {
+    if (!skillInput.trim()) return;
+    if (skillsList.includes(skillInput.trim())) return;
+
+    const updatedSkills = [...skillsList, skillInput.trim()];
+    setSkillsList(updatedSkills);
+    setForm((prev) => ({
+      ...prev,
+      skills: updatedSkills.join(","),
+    }));
+    setSkillInput("");
+  };
+
+  const removeSkill = (skill) => {
+    const updatedSkills = skillsList.filter((s) => s !== skill);
+    setSkillsList(updatedSkills);
+    setForm((prev) => ({
+      ...prev,
+      skills: updatedSkills.join(","),
+    }));
   };
 
   const validate = () => {
@@ -75,7 +102,7 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
       formData.append("jobId", job?.id || job?._id);
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/users/submit-application`,
+        `${import.meta.env.VITE_API_URL}/api/users/manual-apply`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -83,7 +110,16 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
       if (res.data.success) {
         toast.success("Application submitted!");
         localStorage.removeItem("jobDraft");
-        setForm({ name: "", email: "", phone: "", address: "", portfolio: "", resume: null, skills: "" });
+        setForm({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          portfolio: "",
+          resume: null,
+          skills: "",
+        });
+        setSkillsList([]);
         setResumePreview(null);
         setIsOpen(false);
       } else {
@@ -134,7 +170,6 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
                 { name: "phone", type: "text", label: "Phone Number" },
                 { name: "address", type: "text", label: "Address" },
                 { name: "portfolio", type: "text", label: "Portfolio URL (optional)" },
-                { name: "skills", type: "text", label: "Skills (comma separated)" },
               ].map(({ name, type, label }) => (
                 <div key={name} className="relative">
                   <input
@@ -147,13 +182,14 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
                   />
                   <label
                     htmlFor={name}
-                    className="absolute left-4 top-2 text-sm text-gray-500 dark:text-gray-400 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 dark:peer-placeholder-shown:text-gray-500"
+                    className="absolute left-4 top-2 text-sm text-gray-500 dark:text-gray-400 transition-all"
                   >
                     {label}
                   </label>
                 </div>
               ))}
 
+              {/* Resume Upload */}
               <input
                 type="file"
                 name="resume"
@@ -161,7 +197,6 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               />
-
               {resumePreview && (
                 <iframe
                   src={resumePreview}
@@ -170,6 +205,40 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
                 />
               )}
 
+              {/* Skills Input */}
+              <div className="mt-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300">Add Skills</label>
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    placeholder="e.g. React, MongoDB"
+                    className="flex-1 px-3 py-2 border rounded-md bg-transparent dark:bg-gray-800 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSkill}
+                    className="px-4 py-2 rounded-md bg-indigo-500 text-white hover:bg-indigo-600 transition"
+                  >
+                    Add Skill
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {skillsList.map((skill, i) => (
+                    <span
+                      key={i}
+                      className="bg-indigo-100 text-indigo-700 dark:bg-indigo-700 dark:text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-200 dark:hover:bg-red-500 transition"
+                      onClick={() => removeSkill(skill)}
+                      title="Click to remove"
+                    >
+                      {skill} ✕
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buttons */}
               <div className="flex flex-col md:flex-row justify-between gap-4 mt-6">
                 <button
                   type="button"
@@ -194,4 +263,4 @@ const ApplyModal = ({ isOpen, setIsOpen, job }) => {
   );
 };
 
-export default ApplyModal;
+export default ApplyModal;

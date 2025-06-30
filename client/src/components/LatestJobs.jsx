@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, complex } from 'framer-motion';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import allJobsStatic from '../data/allJobs';
@@ -20,8 +20,8 @@ const LatestJobs = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/jobs`);
-        const backendJobs = res.data || [];
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/job`);
+        const backendJobs = Array.isArray(res.data.jobs) ? res.data.jobs : [];
 
         const jobMap = {};
         allJobsStatic.forEach((job) => {
@@ -34,6 +34,8 @@ const LatestJobs = () => {
             id: job._id || job.id,
             tags: job.tags || [],
             logo: job.logo || assets.company_logo,
+            company: job.company ||'Unknown Company',
+            description:job.description ||'No description provided.'
           };
         });
 

@@ -158,29 +158,41 @@ export const updateUserResume = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 // ✅ 6. Public Application Submission (Unauthenticated Users)
 export const submitApplication = async (req, res) => {
   try {
-    const { name, email, phone, address, jobId } = req.body;
+    const { name, email, phone, address, jobId, portfolio, skills } = req.body;
     const resumeFile = req.file;
 
+    // Validation
     if (!name || !email || !phone || !address || !jobId || !resumeFile) {
-      return res.status(400).json({ success: false, message: 'All fields are required.' });
+      return res.status(400).json({ success: false, message: 'All required fields must be filled.' });
     }
 
+    // Upload resume to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(resumeFile.path, {
-      resource_type: "auto"
+      resource_type: "auto",
+      folder: "job_applications"
     });
 
+    // Check if job exists
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found." });
+    }
+
+    // Save to DB
     const newApp = await JobApplication.create({
       name,
       email,
       phone,
       address,
       jobId,
-      resume: uploadResult.secure_url,
-      date: Date.now()
+      resumeUrl: uploadResult.secure_url,
+      portfolio: portfolio || "",
+      skills: skills ? skills.split(',').map((s) => s.trim()) : [],
+      companyId: job.companyId,
+      date: new Date(),
     });
 
     res.status(201).json({
@@ -189,6 +201,7 @@ export const submitApplication = async (req, res) => {
       application: newApp
     });
   } catch (error) {
+    console.error("❌ Submit Application Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

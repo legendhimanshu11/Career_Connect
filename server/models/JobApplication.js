@@ -28,6 +28,8 @@ const JobApplicationSchema = new mongoose.Schema({
   phone: { type: String },
   address: { type: String },
   resumeUrl: { type: String },
+  portfolio:{type:String },
+  skills: [String],
 
   date: {
     type: Date,
