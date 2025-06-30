@@ -41,3 +41,16 @@
 .rich-text ul { margin-left: 30px; list-style-type: disc; }
 
 .rich-text li { margin-bottom: 8px; }
+.input {
+  @apply w-full px-4 py-2 rounded-lg border dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition;
+}
+
+.btn {
+  @apply bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition;
+}
+.input {
+  @apply w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+.btn-primary {
+  @apply w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition;
+}

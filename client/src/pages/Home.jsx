@@ -1,19 +1,23 @@
-import Navbar from '../components/Navbar'
-import Hero from '../components/Hero'
-import JobListing from '../components/JobListing'
-import AppDownload from '../components/AppDownload'
-import Footer from '../components/Footer'
+import Navbar from "../components/Navbar";
+import HeroSection from "../components/HeroSection";
+import RecommendedJobs from "../components/RecommendedJobs";
+import LatestJobs from "../components/LatestJobs";
+import AppDownload from "../components/AppDownload";
+import Footer from "../components/Footer";
 
 const Home = () => {
+  console.log("Homerendered");
+
   return (
-    <div>
+    <div className="font-outfit">
       <Navbar />
-      <Hero />
-      <JobListing />
+      <HeroSection />
+      <RecommendedJobs />
+      <LatestJobs />
       <AppDownload />
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

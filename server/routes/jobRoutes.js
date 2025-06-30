@@ -1,13 +1,35 @@
-import express from 'express'
-import { getJobById, getJobs } from '../controllers/jobController.js';
+import express from 'express';
+import {
+  getJobById,
+  getJobs,
+  postNewJob // ✅ New job creation controller
+} from '../controllers/jobController.js';
+import { protectCompany } from '../middleware/authMiddleware.js';
+import { incrementJobViews } from '../controllers/jobController.js';
 
-const router = express.Router()
+const router = express.Router();
 
-// Route to get all jobs data
-router.get('/', getJobs)
+/**
+ * @route   GET /api/job/
+ * @desc    Fetch all jobs
+ * @access  Public
+ */
+router.get('/', getJobs);
 
-// Route to get a single job by ID
-router.get('/:id', getJobById)
+/**
+ * @route   GET /api/job/:id
+ * @desc    Fetch job by ID
+ * @access  Public
+ */
+router.get('/:id', getJobById);
 
+/**
+ * @route   POST /api/job/add
+ * @desc    Post new job (used by recruiters)
+ * @access  Private (Company)
+ */
+router.post('/add', protectCompany, postNewJob); // ✅ Secured with middleware
 
-export default router;
+router.post('/increment-views/:jobId',incrementJobViews);
+
+export default router;

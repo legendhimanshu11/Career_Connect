@@ -1,39 +1,80 @@
-import { useContext } from 'react'
-import { assets } from '../assets/assets'
-import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { AppContext } from '../context/AppContext'
+import { useContext, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
+import { AppContext } from '../context/AppContext';
+import { assets } from '../assets/assets';
 
 const Navbar = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { setShowRecruiterLogin } = useContext(AppContext);
 
-    const { openSignIn } = useClerk()
-    const { user } = useUser()
+  const [searchQuery, setSearchQuery] = useState('');
 
-    const navigate = useNavigate()
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${searchQuery}`);
+    }
+  };
 
-    const { setShowRecruiterLogin } = useContext(AppContext)
+  return (
+    <div className="shadow backdrop-blur-md bg-white/70 sticky top-0 z-50">
+      <div className="container mx-auto px-4 xl:px-20 py-2 flex justify-between items-center">
 
-    return (
-        <div className='shadow py-4'>
-            <div className='container px-4 2xl:px-20 mx-auto flex justify-between items-center'>
-                <img onClick={() => navigate('/')} className='cursor-pointer' src={assets.logo} alt="" />
-                {
-                    user
-                        ? <div className='flex items-center gap-3'>
-                            <Link to={'/applications'}>Applied Jobs</Link>
-                            <p>|</p>
-                            <p className='max-sm:hidden'>Hi, {user.firstName + " " + user.lastName}</p>
-                            <UserButton />
-                        </div>
-                        : <div className='flex gap-4 max-sm:text-xs'>
-                            <button onClick={e => setShowRecruiterLogin(true)} className='text-gray-600'>Recruiter Login</button>
-                            <button onClick={e => openSignIn()} className='bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full'>Login</button>
-                        </div>
-                }
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 cursor-pointer">
+          <img src={assets.logo} alt="logo" className="h-10 w-auto drop-shadow-md rounded-md" />
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-600">
+            Career<span className="text-green-500">Connect</span>
+          </h1>
+        </Link>
 
-            </div>
+        {/* Nav Links */}
+        <div className="hidden md:flex gap-6 text-gray-700 font-medium text-base">
+          <Link to="/" className="hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 pb-1">Home</Link>
+          <Link to="/services" className="hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 pb-1">Services</Link>
+          <Link to="/about" className="hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 pb-1">About</Link>
+          <Link to="/contact" className="hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 pb-1">Contact</Link>
         </div>
-    )
-}
 
-export default Navbar
+        {/* Auth Buttons */}
+        <div className="flex items-center gap-3 text-sm">
+          {
+            user ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:block text-gray-700">Hi, {user.firstName}</span>
+                <UserButton />
+              </div>
+            ) : (
+              <div className="flex gap-2 items-center">
+
+                {/* 🟢 Sign Up */}
+                <Link to="/register" className="bg-green-500 text-white px-4 py-1.5 rounded-full hover:bg-green-600 transition">
+                  Sign Up
+                </Link>
+
+                {/* 🔵 Login (Custom page using Clerk) */}
+                <Link to="/login" className="bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition">
+                  Login
+                </Link>
+
+                {/* | Divider */}
+                <span className="text-gray-400 text-xl font-light">|</span>
+
+                {/* ⚪ Recruiter Login (JWT) */}
+                <button onClick={()=> setShowRecruiterLogin(true)} 
+                className="text-gray-700 hover:border-b-2 hover:border-x-gray-600 transition duration-150 ease-in-out" >
+                  Recruiter Login
+                  </button>
+
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Navbar;

@@ -1,27 +1,51 @@
-import jwt from 'jsonwebtoken'
-import Company from '../models/Company.js'
+import jwt from 'jsonwebtoken';
+import Company from '../models/Company.js';
+import User from '../models/User.js';
 
-// Middleware ( Protect Company Routes )
-export const protectCompany = async (req,res,next) => {
+// 🔒 Protect Company Routes
+export const protectCompany = async (req, res, next) => {
+  const token = req.headers.token;
 
-    // Getting Token Froms Headers
-    const token = req.headers.token
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Not authorized, login again' });
+  }
 
-    
-    if (!token) {
-        return res.json({ success:false, message:'Not authorized, Login Again'})
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const company = await Company.findById(decoded.id).select('-password');
+
+    if (!company) {
+      return res.status(401).json({ success: false, message: 'Company not found' });
     }
 
-    try {
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    req.company = company;
+    req.auth = { companyId: company._id }; // ✅ for consistency across controllers
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token: ' + error.message });
+  }
+};
 
-        req.company = await Company.findById(decoded.id).select('-password')
+// 🔒 Protect User Routes
+export const protectUser = async (req, res, next) => {
+  const token = req.headers.token;
 
-        next()
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Not authorized, login again' });
+  }
 
-    } catch (error) {
-        res.json({success:false, message: error.message})
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'User not found' });
     }
 
-}
+    req.user = user;
+    req.auth = { userId: user._id }; // ✅ standardized access in controllers
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token: ' + error.message });
+  }
+};
